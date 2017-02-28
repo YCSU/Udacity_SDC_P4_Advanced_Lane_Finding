@@ -24,7 +24,7 @@ The goals / steps of this project are the following:
 
 
 ### Running the code
-The projects includes the following files:
+The project includes the following files:
 * create_video.py - pipeline for detecting lane lines. See the comments in the the file for explanation  
 * utils.py - functions including camera calibration, perspective tranform, sobel filter, and finding lane lines
 * project_video_output.mp4 - the output video with detected lane lines
