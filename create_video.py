@@ -158,14 +158,14 @@ if __name__ == "__main__":
     images = glob.glob('./camera_cal/calibration*.jpg')
     img = cv2.imread('./test_images/straight_lines1.jpg')
 
-    #find matrices for correcting distortion and perspective transformation
+    # Find matrices for correcting distortion and perspective transformation
     binary = binarize_img(img)
     mtx, dist = calibration_mtx_dist(images, 9, 6, img.shape[:2][::-1])
     img_size = binary.shape[::-1]
     M = get_perspective_map_matrix(img_size)
     M_inverse = get_inverse_perspective_map_matrix(img_size)
 
-    #process the video
+    # Process the video
     output = 'project_video_output1.mp4'
     clip2 = VideoFileClip('project_video.mp4')
     process_image2 = lambda x: process_image(x, mtx, dist, M, M_inverse)
