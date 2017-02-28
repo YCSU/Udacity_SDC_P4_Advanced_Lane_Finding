@@ -74,9 +74,9 @@ This choice of points is verified by plotting the results of the transformation:
 ![][image4]
 
 ### Fitting the lane lines
-To fit the lane lines in the binarized and warped image, we apply the sliding-window method descirbed in the course with a few twists to make it more robust(find_pixel_pos(), line 179-275 in utils.py). 
+To fit the lane lines in the binarized and warped image, we apply the sliding-window method descirbed in the course with a few twists to make it more robust (find_pixel_pos(), line 179-275 in utils.py). 
 
-First, we take the histogram of the one-third lower part of the image, and identify the peaks in the histogram as the starting point to search for the pixels for the lane lines (line 190-216 in utils.py). We search the pixels by dividing the lower two-third of the image along the y-direction into 8 boxes. The upper part of the waped image usually contains more noise and that is why we ignore them here.  
+First, we take the histogram of the one-third lower part of the image, and identify the peaks in the histogram as the starting point to search for the pixels for the lane lines (line 190-216 in utils.py). We search the pixels by dividing the lower two-third of the image along the y-direction into 8 boxes. The upper part of the warped image usually contains more noise and that is why we ignore them here.  
 
 Using the starting point as the center of the box, we caulate the meidan of the (x, y) coordinates of the pixels within the box to determine the first box at the bottom, and pile up the box to find all the pixels we need (line 219-263 in utils.py). After locating each sliding box, we calculate the offset of the x coordinates of the points within the box and add them to the meidan of the x coordinates of the points within the box as the new center for the next box (line 249-263 in utils.py).
 
@@ -92,6 +92,11 @@ Here is an example of an image which goes through the above pipeline
 ![][image6]
 
 ## Pipeline (video)
-The video pipeline is almost identical to the single image pipeline except that smoothing 
+The resulting video is project_video_output.mp4 in the repository. The video pipeline is almost identical to the single image pipeline except that smoothing (line 32,33,58,59 in create_videos.py ) and sanity check (line 41-62, 88-110 in create_video.py) is applied from frame to frame.
+
+For the sanity check, we limit the size of the variation of the radius of curvature. If it is too big, we discard the fitting results, and if it is within the range, we append the coordinates of the pixels to to a queue with a maximum of three groups of pixels. To get the final ouput of the fitting results, we fit all the points within the queue. This mechanism help smooth the fitted line from frame to frame.
 
 ## Discussion
+The light condition of the project video is quite homogeneous, so it is fairly easy to find filters that is able to extract the pixel positions of the lane lines. However, in the challenge video the light conition varies a lot and it take more time to find the right combination of the filter to extract the correct pixels. It is possible to further improve the filter mechanism by adatively adjust the threshold for binarizing the image. Another possible route might be equalizing the histogram adaptively.
+
+The sliding window approach introduced in the class is quite useful when the lane lines does not bend so much. However, when the lines bend abruptly, it has difficulty to follow the lines. One possible improvement is to introduce offsets between the sliding windows in the y direction. This is different from using more windows because windows with offsets shares part of the imformation.
