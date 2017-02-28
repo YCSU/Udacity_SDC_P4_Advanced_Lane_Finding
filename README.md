@@ -2,12 +2,12 @@
 Using Sobel filter and color space to find lane lines
 
 [//]: # (Image References)
-[image1]: ./images/Architecture.PNG "architecture"
-[image2]: ./images/resizing_and_cropping.png "Resized and crooped image"
-[image3]: ./images/steering_hist.png "steering hist"
-[image4]: ./images/steering_hist_flipped.png "steering hist balanced"
-[image5]: ./images/augmentation.png "augmentated image"
-[image6]: ./images/filter.png "filter example"
+[image1]: ./output_images/distortion_correction.jpg
+[image2]: ./output_images/undist.jpg
+[image3]: ./output_images/binarized.jpg
+[image4]: ./output_images/warp.jpg
+[image5]: ./output_images/fit_lines.jpg
+[image6]: ./output_images/outupt.jpg
 
 This is the fourth project for Udacity Self-Driving Car Engineer Nanodegree. For this project, we need to detect the lane lines on the road, and calculate both the radius of curvature and the distance off the center between the lane lines.
 
@@ -36,4 +36,26 @@ To launch the script,
 ```
 python create_video.py
 ```
+## Compute the camera calibration matrix and distortion coefficients
+adf
+![][image1]
 
+asdf
+
+![][image2]
+
+asdf
+
+![][image3]
+
+asdf
+
+![][image4]
+
+asdf
+
+![][image5]
+
+asdf
+
+![][image6]
