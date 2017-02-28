@@ -42,18 +42,31 @@ python create_video.py
 For camera calibration (line 14-39 in utils.py), I assume that the (x, y, z) coordinates of the chessboard corners for the objpoints are fixed on the x-y plane at z=0. Everytime the coreners are found in a calibration image, the objpoints and the (x, y) coordinates of the corners in the image are appended to objpoints and imgpoints. Finally, we feed objpoints and imgpoints into cv2.calibrateCamera to obtain the camera calibration matrix and distortion coefficients. Using cv2.undistort(), we obtain the following result (line 280-294 in utils.py):
 ![][image1]
 
-## Pipeline
+## Pipeline (single imagle)
 The whole pipeline is in the process_image() function (line 68-152 in create_video.py).
 
 ### Correct distortion 
-After obtaining the camera calibration matrix and distortion coefficients from the previous step, we can use cv2.undistort() to correct the distortion. Here is an example from the test image
+After obtaining the camera calibration matrix and distortion coefficients from the previous step, we can use cv2.undistort() to correct the distortion (line 79-80 in create_video.py). Here is an example from the test image:
 ![][image2]
 
-asdf
-
+### Binarzing the image
+We apply Sobel filters and thresholdings in r,g,b,saturation colorspace (binarize_img(), line 122-154 in utils). Sobel filters in x, y, magnitude and direction is applied to each color channel. The simple threshholdings was also used to search the candidates.
 ![][image3]
 
-asdf
+### Perspective transform
+For the perspective trasfrom (line 41-70 in utils.py), the following source and destination points are used for cv2.getPerspectiveTransform():
+```
+src = np.float32([(256,678),
+                  (1051, 678),
+                  (688,450),
+                  (593, 450)])
+
+dst = np.float32([[300, 720],
+                  [980, 720],
+                  [300, 0],
+                  [980, 0]])
+```
+This choice of points is verified by plotting the results of the transformation
 
 ![][image4]
 
