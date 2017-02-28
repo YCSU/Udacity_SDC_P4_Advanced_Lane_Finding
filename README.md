@@ -30,6 +30,7 @@ The project includes the following files:
 * project_video_output.mp4 - the output video with detected lane lines
 * challenge_video_output.mp4 - a not so successful attempt for challenge video
 * README.md - the file reading now
+
 Make sure Opencv, moviepy and glob is installed before running the script.
 
 To launch the script, 
