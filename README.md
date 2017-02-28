@@ -76,14 +76,22 @@ This choice of points is verified by plotting the results of the transformation:
 ### Fitting the lane lines
 To fit the lane lines in the binarized and warped image, we apply the sliding-window method descirbed in the course with a few twists to make it more robust(find_pixel_pos(), line 179-275 in utils.py). 
 
-First, we take the histogram of the one-third lower part of the image, and identify the peaks in the histogram as the starting point to search for the pixels for the lane lines (line 190-216 in utils.py). We search the pixels by dividing the lower two-third of the image along the y-direction into 8 boxes. Using the starting point as the center of the box, we caulate the meidan of the (x, y) coordinates of the pixels within the box to determine the first box at the bottom, and pile up the box to find all the pixels we need (line 219-263 in utils.py). After locating each sliding box, we calculate the offset of the x coordinates of the points within the box and add them to the meidan of the x coordinates of the points within the box as the new center for the next box (line 249-263 in utils.py).
+First, we take the histogram of the one-third lower part of the image, and identify the peaks in the histogram as the starting point to search for the pixels for the lane lines (line 190-216 in utils.py). We search the pixels by dividing the lower two-third of the image along the y-direction into 8 boxes. The upper part of the waped image usually contains more noise and that is why we ignore them here.  
+
+Using the starting point as the center of the box, we caulate the meidan of the (x, y) coordinates of the pixels within the box to determine the first box at the bottom, and pile up the box to find all the pixels we need (line 219-263 in utils.py). After locating each sliding box, we calculate the offset of the x coordinates of the points within the box and add them to the meidan of the x coordinates of the points within the box as the new center for the next box (line 249-263 in utils.py).
 
 After locating all the pixels we need through sliding windows, we fit all those points with a second-order polynomial (line 88-110 in create_video.py) by numpy.polyfit(), and we calculate the radius of curvature (line 35-39, 116-119 in create_video.py) and the distance off the center (line 127 in create_video.py). Here is a resulting image of the fitted lines:
 
 ![][image5]
 
-The radius of curvature is estimated by calculating the radius curvature near the bottom
+The radius of curvature is estimated by calculating the radius curvature at the bottom of the left and right curves,  and take the average of them as the estimation. For the distance off the center, we assume the camera is mounted at the center of the car, and the distance is the deviation of the midpoint of the lane from the center of the image.
 
 ### Example output of the pipeline
+Here is an example of an image which goes through the above pipeline
 
 ![][image6]
+
+## Pipeline (video)
+The video pipeline is almost identical to the single image pipeline except that smoothing 
+
+## Discussion
