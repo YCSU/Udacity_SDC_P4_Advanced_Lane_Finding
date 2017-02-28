@@ -36,12 +36,17 @@ To launch the script,
 ```
 python create_video.py
 ```
+
+
 ## Compute the camera calibration matrix and distortion coefficients
-adf
+For camera calibration (line 14-39 in utils.py), I assume that the (x, y, z) coordinates of the chessboard corners for the objpoints are fixed on the x-y plane at z=0. Everytime the coreners are found in a calibration image, the objpoints and the (x, y) coordinates of the corners in the image are appended to objpoints and imgpoints. Finally, we feed objpoints and imgpoints into cv2.calibrateCamera to obtain the camera calibration matrix and distortion coefficients. Using cv2.undistort(), we obtain the following result (line 280-294 in utils.py):
 ![][image1]
 
-asdf
+## Pipeline
+The whole pipeline is in the process_image() function (line 68-152 in create_video.py).
 
+### Correct distortion 
+After obtaining the camera calibration matrix and distortion coefficients from the previous step, we can use cv2.undistort() to correct the distortion. Here is an example from the test image
 ![][image2]
 
 asdf
