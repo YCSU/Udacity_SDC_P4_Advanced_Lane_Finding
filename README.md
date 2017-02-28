@@ -52,7 +52,7 @@ After obtaining the camera calibration matrix and distortion coefficients from t
 ![][image2]
 
 ### Binarzing the image
-We apply Sobel filters and thresholdings in r,g,b,saturation colorspace (binarize_img(), line 122-154 in utils). Sobel filters in x, y, magnitude and direction is applied to each color channel. The simple threshholdings was also used to search the candidates.
+We apply Sobel filters and thresholdings in r,g,b,saturation colorspace (binarize_img(), line 122-154 in utils.py). Sobel filters in x, y, magnitude and direction is applied to each color channel. The simple threshholdings was also used to search the candidates.
 
 ![][image3]
 
@@ -74,9 +74,15 @@ This choice of points is verified by plotting the results of the transformation:
 ![][image4]
 
 ### Fitting the lane lines
+To fit the lane lines in the binarized and warped image, we apply the sliding-window method descirbed in the course with a few twists to make it more robust(find_pixel_pos(), line 179-275 in utils.py). 
 
+First, we take the histogram of the one-third lower part of the image, and identify the peaks in the histogram as the starting point to search for the pixels for the lane lines (line 190-216 in utils.py). We search the pixels by dividing the lower two-third of the image along the y-direction into 8 boxes. Using the starting point as the center of the box, we caulate the meidan of the (x, y) coordinates of the pixels within the box to determine the first box at the bottom, and pile up the box to find all the pixels we need (line 219-263 in utils.py). After locating each sliding box, we calculate the offset of the x coordinates of the points within the box and add them to the meidan of the x coordinates of the points within the box as the new center for the next box (line 249-263 in utils.py).
+
+After locating all the pixels we need through sliding windows, we fit all those points with a second-order polynomial (line 88-110 in create_video.py) by numpy.polyfit(), and we calculate the radius of curvature (line 35-39, 116-119 in create_video.py) and the distance off the center (line 127 in create_video.py). Here is a resulting image of the fitted lines:
 
 ![][image5]
+
+The radius of curvature is estimated by calculating the radius curvature near the bottom
 
 ### Example output of the pipeline
 
