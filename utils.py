@@ -11,8 +11,11 @@ margin = 50
 # Set minimum number of pixels found to recenter window
 minpix = 50
 
-
+###########################################################
 def calibration_mtx_dist(image_paths, nx, ny, img_size):
+    '''
+    Find calibration matrix for correcting distortion
+    '''
     objp = np.zeros((ny*nx, 3), np.float32)
     objp[:,:2] = np.mgrid[0:nx, 0:ny].T.reshape(-1,2)
 
@@ -35,6 +38,7 @@ def calibration_mtx_dist(image_paths, nx, ny, img_size):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img_size, None, None)
     return mtx, dist
 
+###########################################################
 def get_perspective_map_matrix(img_size):
     src = np.float32([(256,678),
                     (1051, 678),
@@ -63,7 +67,7 @@ def get_inverse_perspective_map_matrix(img_size):
                       [x_offset, y_offset]])
     return cv2.getPerspectiveTransform(dst, src)
 
-
+###########################################################
 def abs_sobel_thresh(gray, orient='x', thresh_min=0, thresh_max=255):
     if orient == 'x':
         sobel = cv2.Sobel(gray, cv2.CV_64F, 1, 0)
@@ -76,8 +80,6 @@ def abs_sobel_thresh(gray, orient='x', thresh_min=0, thresh_max=255):
 
     return binary_output
 
-
-
 def mag_thresh(gray, sobel_kernel=3, mag_thresh=(0, 255)):
     sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
     sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
@@ -87,8 +89,6 @@ def mag_thresh(gray, sobel_kernel=3, mag_thresh=(0, 255)):
     binary_output[(scale_sobel > mag_thresh[0]) & (scale_sobel < mag_thresh[1])] = 1
 
     return binary_output
-
-
 
 def dir_thresh(gray, sobel_kernel=3, thresh=(0, np.pi/2)):
     abs_sobelx = np.absolute(cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel))
@@ -120,6 +120,10 @@ def sobel_filterts(img):
     return sobelx, sobely, sobel_mag, sobel_dir
 
 def binarize_img(img):
+    '''
+    Filtering pipeline
+    Sobel filters and thresholding applied on r,g,b,s colorspace
+    '''
     s = cv2.equalizeHist(cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:,:,2])
     r = cv2.equalizeHist(img[:,:,2])
     g = cv2.equalizeHist(img[:,:,1])
@@ -149,9 +153,33 @@ def binarize_img(img):
             | ((b_binary==1) & (s_binary==1))]=1
     return binary
 
+###########################################################
+def continue_find_pixel_pos(binary_warped, left_fit, right_fit):
+    '''
+    Find lines from the fitted lines in the previous frames
+    '''
+    # Identify the x and y positions of all nonzero pixels in the image
+    nonzero = binary_warped.nonzero()
+    nonzeroy = np.array(nonzero[0])
+    idx = nonzeroy > binary_warped.shape[0]/3
+    nonzerox = np.array(nonzero[1])[idx]
+    nonzeroy = nonzeroy[idx]
+    left_lane_inds = ((nonzerox > (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2] - margin)) & (nonzerox < (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2] + margin)))
+    right_lane_inds = ((nonzerox > (right_fit[0]*(nonzeroy**2) + right_fit[1]*nonzeroy + right_fit[2] - margin)) & (nonzerox < (right_fit[0]*(nonzeroy**2) + right_fit[1]*nonzeroy + right_fit[2] + margin)))
+
+    # Again, extract left and right line pixel positions
+    leftx = nonzerox[left_lane_inds]
+    lefty = nonzeroy[left_lane_inds]
+    rightx = nonzerox[right_lane_inds]
+    righty = nonzeroy[right_lane_inds]
+
+    return leftx, lefty, rightx, righty
+
 
 def find_pixel_pos(binary_warped):
-
+    '''
+    Find lines from scratch
+    '''
     # Set height of windows
     window_height = np.int(2*binary_warped.shape[0]/3/nwindows)
     # Identify the x and y positions of all nonzero pixels in the image
@@ -181,15 +209,11 @@ def find_pixel_pos(binary_warped):
     good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
     good_right_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & (nonzerox >= win_xright_low) & (nonzerox < win_xright_high)).nonzero()[0]
 
-
-
     # If you found > minpix pixels, recenter next window on their mean position
     if len(good_left_inds) > minpix:
         leftx_current = np.int(np.median(nonzerox[good_left_inds]))
     if len(good_right_inds) > minpix:
         rightx_current = np.int(np.median(nonzerox[good_right_inds]))
-
-
 
     # Create empty lists to receive left and right lane pixel indices
     left_lane_inds = []
@@ -221,10 +245,12 @@ def find_pixel_pos(binary_warped):
         good_right_x = nonzerox[good_right_inds]
         left_ymedian = np.median(good_left_y)
         right_ymedian = np.median(good_right_y)
+
+        # Calculate the x-direction offset as a way to estimate the center of the next box
         left_offset = np.median(good_left_x[good_left_y > left_ymedian]) - np.median(good_left_x[good_left_y < left_ymedian])
         right_offset = np.median(good_right_x[good_right_y > right_ymedian]) - np.median(good_right_x[good_right_y < right_ymedian])
 
-        # If you found > minpix pixels, recenter next window on their mean position
+        # If you found > minpix pixels and offset, recenter next window on their median position plus the offset of the points
         if (len(good_left_inds) > minpix) and (not np.isnan(left_offset)) and ((np.sign(left_offset) == np.sign(old_left_offset)) or old_left_offset==0):
             leftx_current = np.int(np.median(good_left_x) - left_offset)
             old_left_offset = np.int(left_offset)
@@ -236,7 +262,6 @@ def find_pixel_pos(binary_warped):
         else:
             rightx_current -= old_right_offset
 
-
     # Concatenate the arrays of indices
     left_lane_inds = np.concatenate(left_lane_inds)
     right_lane_inds = np.concatenate(right_lane_inds)
@@ -247,29 +272,11 @@ def find_pixel_pos(binary_warped):
     rightx = nonzerox[right_lane_inds]
     righty = nonzeroy[right_lane_inds]
 
-    # Fit a second order polynomial to each
-    left_fit = np.polyfit(lefty, leftx, 2)
-    right_fit = np.polyfit(righty, rightx, 2)
+    return leftx, lefty, rightx, righty
 
-    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
-    left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-    right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-
-    out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-    out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
-
-    plt.figure(figsize=(8, 6))
-    plt.subplot(111)
-    plt.imshow(out_img)
-    plt.plot(left_fitx, ploty, color='yellow')
-    plt.plot(right_fitx, ploty, color='yellow')
-    plt.xlim(0, 1280)
-    plt.ylim(720, 0)
-    plt.savefig("./output_images/fit_lines.jpg", dpi=80)
 
 
 if __name__ == "__main__":
-
     images = glob.glob('./camera_cal/calibration*.jpg')
     img = cv2.imread('./camera_cal/calibration1.jpg')
     mtx, dist = calibration_mtx_dist(images, 9, 6, img.shape[:2][::-1])
@@ -333,11 +340,5 @@ if __name__ == "__main__":
     plt.title("warped")
     plt.imshow(warp)
     plt.savefig("./output_images/warp.jpg", dpi=100)
-
-    img = cv2.imread('./test_images/test5.jpg')
-    undist = cv2.undistort(img, mtx, dist, None, mtx)
-    binarized = binarize_img(undist)
-    binarized_warp = cv2.warpPerspective(binarized, M, im_size)
-    find_pixel_pos(binarized_warp)
 
 
