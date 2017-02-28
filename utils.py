@@ -306,9 +306,9 @@ if __name__ == "__main__":
     plt.imshow(undist, cmap="gray")
     plt.savefig("./output_images/undist.jpg", dpi=100)
 
-
+    undist = cv2.cvtColor(undist, cv2.COLOR_RGB2BGR)
     binarized = binarize_img(undist)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    undist = cv2.cvtColor(undist, cv2.COLOR_BGR2RGB)
     plt.figure(figsize=(8, 6))
     plt.subplot(121)
     plt.title("original")
