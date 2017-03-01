@@ -88,7 +88,7 @@ After locating all the pixels we need through sliding windows, we fit all those 
 The radius of curvature is estimated by calculating the radius curvature at the bottom of the left and right curves,  and take the average of them as the estimation. For the distance off the center, we assume the camera is mounted at the center of the car, and the distance is the deviation of the midpoint of the lane from the center of the image.
 
 ### Example output of the pipeline
-After the fitting lines are found, a polygon is drawn according to the lines and is warped back to the original perspective (line 129-144 in creative_video.py). Here is an example of an image which goes through the above pipeline
+After the lines are found, a polygon is drawn according to the lines and is warped back to the original perspective (line 129-144 in creative_video.py). Here is an example of an image which goes through the above pipeline
 
 ![][image6]
 
