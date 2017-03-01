@@ -4,12 +4,6 @@ import cv2
 import glob
 import matplotlib.pyplot as plt
 
- # Choose the number of sliding windows
-nwindows = 8
-# Set the width of the windows +/- margin
-margin = 50
-# Set minimum number of pixels found to recenter window
-minpix = 50
 
 ###########################################################
 def calibration_mtx_dist(image_paths, nx, ny, img_size):
